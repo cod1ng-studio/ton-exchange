@@ -10,11 +10,11 @@ Bot: `npm install` then `node ExchangeBot.js`
 
 ### Internal messages:
 
-Following the [TON smartcontracts guidelines](https://test.ton.org/smguidelines.txt) all internal messages should start with 32 uint operation_id and 64 uint query_id.
+Following the [TON smartcontracts guidelines](https://test.ton.org/smguidelines.txt) all internal messages starts with 32 uint operation_id and 64 uint query_id.
 
-If the query is invalid, the smart contract should throw an exception.
+If the query is invalid, the smart contract throws an exception.
 
-After successful completion of the query, the smart contract should respond with a message 0x90000000
+After successful completion of the query, the smart contract responds with a message 0x90000000
 
 `<b 0x90000000 32 u, query_id 64 u, query_op 32 u, b>`
 
@@ -22,7 +22,7 @@ Therefore, you need to apply 1 extra gram if you send grams to the contract.
 
 Unused grams will be return back.
 
-If operation is unsupported, the smart contract should respond with a message 0xffffffff.
+If operation is unsupported, the smart contract responds with a message 0xffffffff.
 
 ---
 
