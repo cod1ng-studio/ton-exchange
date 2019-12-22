@@ -65,4 +65,6 @@ Thanks to this, it was possible to create a user friendly interface - [@gram100_
 
 Using the bot, users can exchange currencies without using a console.
 
-The bot generates ton:// links that you need to open with your TON wallet and send. 
+The bot generates ton:// links that you need to open with your TON wallet and send.
+
+Look: https://coding.studio/dexbot.mp4 
