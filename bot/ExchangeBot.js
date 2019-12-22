@@ -179,9 +179,9 @@ async function parseOrders(arr) {
         return 'No pending orders';
     } else {
         let result = '';
-        const n = Math.floor(arr.length / 6);
+        const n = Math.floor(arr.length / 7);
 
-        for (let i = 0; i < n * 6; i += 6) {
+        for (let i = 0; i < n * 7; i += 7) {
             const id = Number(arr[i + 0]);
             const paid = Number(arr[i + 1]);
             const sender = await sliceToAddr(arr[i + 2]);
