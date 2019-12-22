@@ -609,109 +609,93 @@ PROGRAM{
         3 BLKDROP
       }>
     }>
+    NIP
     c4 PUSH
     CTOS
     64 LDU
     LDDICT
     ENDS
-    OVER
-    0 PUSHINT
-    s9 PUSH
+    s1 s6 PUSH2
     1 EQINT
     IF:<{
-      s0 s4 XCHG
+      s7 POP
+      s0 s2 XCHG
       LDGRAMS
       ~load_currency CALLDICT
       SWAP
       LDGRAMS
       ~load_currency CALLDICT
       NIP
-      s7 s2 PUSH2
+      0 PUSHINT
+      s3 PUSH
       is_gram CALLDICT
-      DUP
-      IF:<{
-        s9 POP
-        s0 s12 XCHG
-        1000000000 PUSHINT
-        SUB
-        1 PUSHINT
-      }>ELSE<{
-        s13 s9 XCHG2
-      }>
       s4 PUSH
       get_extra_currency CALLDICT
       DUP
       IF:<{
         NIP
-        NIP
-        s8 POP
-        s7 s10 XCHG2
+        s10 POP
+        s9 s8 XCHG2
         32 PUSHINT
         DICTIGET
         NULLSWAPIFNOT
         DROP
         LDGRAMS
         DROP
-        s10 PUSH
         -1 PUSHINT
       }>ELSE<{
-        s3 s13 XCHG
-        s4 s10 XCHG
-        s4 s3 s0 XCHG3
+        s3 s11 XCHG
+        s1 s10 s0 XCHG3
         2DROP
       }>
       DUP
       IF:<{
-        s12 POP
-        s1 s3 XCPU
+        s8 POP
+        s3 PUSH
         GEQ
         100 THROWIFNOT
-        s4 s8 XCPU
+        s4 s5 XCPU
         0 PUSHINT
-        s4 s3 s8 PUSH3
-        s14 PUSH
+        s4 s3 s6 PUSH3
+        s12 PUSH
         try_match_order CALLDICT
       }>ELSE<{
-        s2 POP
-        s6 PUSH
+        NIP
+        s4 PUSH
         INC
-        s10 s4 s(-2) PU2XC
+        s7 s4 s(-2) PU2XC
         s5 s(-1) PUXC
         transfer_from CALLDICT
-        s11 s5 XCHG2
-        SWAP
+        s5 s7 XCHG2
       }>
       0 EQINT
       IF:<{
-        s3 POP
-        s0 s4 XCHG
+        s8 POP
+        s0 s2 XCHG
         INC
-        s7 PUSH
-        s4 s1 s5 XCHG3
-        s6 s9 s3 XCHG3
-        s0 s10 XCHG
+        s4 s5 XCHG
+        4 1 REVERSE
+        s6 s6 XCHG2
         store_order CALLDICT
         SWAP
         64 PUSHINT
-        s5 s6 s6 PUXC2
+        s1 s3 s3 PUXC2
         DICTUSETB
       }>ELSE<{
-        s4 s10 XCHG
-        s3 s9 XCHG
-        s0 s6 XCHG
-        6 BLKDROP
+        s0 s7 XCHG
+        7 BLKDROP
       }>
     }>ELSE<{
-      s3 POP
-      s6 POP
-      s6 POP
-      s6 PUSH
+      s2 POP
+      s4 POP
+      s4 POP
+      s0 s4 XCHG
       2 EQINT
       IF:<{
-        SWAP
+        s0 s3 XCHG
         64 LDU
         DROP
-        s0 s5 PUSH2
+        s0 s1 PUSH2
         64 PUSHINT
         DICTUGET
         NULLSWAPIFNOT
@@ -721,56 +705,45 @@ PROGRAM{
           3 BLKDROP
           s3 PUSH
           HASHSU
-          s8 PUSH
+          s0 s8 XCHG
           HASHSU
+          s1 s8 XCHG
           EQUAL
           IF:<{
+            s0 s6 XCHG
             IF:<{
-              s3 PUSH
+              s1 s0 s5 XCHG3
+              s5 PUSH
               transfer CALLDICT
             }>ELSE<{
+              s2 s5 XCHG
               3 BLKDROP
             }>
-            s0 s5 XCHG2
+            s1 s2 XCHG
             64 PUSHINT
             DICTUDEL
             DROP
           }>ELSE<{
-            s5 s9 XCHG
+            s5 s6 XCHG
+            s4 s5 XCHG
             5 BLKDROP
           }>
         }>ELSE<{
-          s2 s6 XCHG
-          2DROP
+          s3 s4 XCHG
+          s2 s3 XCHG
+          3 BLKDROP
         }>
       }>ELSE<{
-        s5 s5 XCHG2
-        DROP
+        s1 s3 s0 XCHG3
+        2DROP
       }>
     }>
     NEWC
-    s1 s4 XCHG
+    s1 s2 XCHG
     64 STU
-    s1 s3 XCHG
     STDICT
     ENDC
     c4 POP
-    2415919104 PUSHINT
-    s3 PUSH
-    IF:<{
-      1000000000 PUSHINT
-    }>ELSE<{
-      0 PUSHINT
-    }>
-    s0 s4 XCHG
-    IF:<{
-      2 PUSHINT
-    }>ELSE<{
-      64 PUSHINT
-    }>
-    5 1 REVERSE
-    s0 s3 s3 XCHG3
-    send_message_back CALLDICT
   }>
   process_trc20_reply PROC:<{
     SWAP

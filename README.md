@@ -14,16 +14,6 @@ Following the [TON smartcontracts guidelines](https://test.ton.org/smguidelines.
 
 If the query is invalid, the smart contract throws an exception.
 
-After successful completion of the query, the smart contract responds with a message 0x90000000
-
-`<b 0x90000000 32 u, query_id 64 u, query_op 32 u, b>`
-
-Therefore, you need to apply 1 extra gram if you send grams to the contract.
-
-Unused grams will be return back.
-
-If operation is unsupported, the smart contract responds with a message 0xffffffff.
-
 ---
 
 insert_order(from_value, from_currency_type, from_currency, to_value, to_currency_type, to_currency) - creates a new exchange order.
@@ -34,7 +24,7 @@ currency_type has 2 values:
 
 1 - if currency is TRC20 token. In this case currency value is TRC20 token smart contract address (8bit wc + 256bit addr).
 
-if from_currency is gram or TON extra currency an (appropriate amount + 1 Gram) must be attached to the message.
+if from_currency is gram or TON extra currency an appropriate amount must be attached to the message.
 
 if from_currency is TRC20 token you must make approve the corresponding amount of the token in favor of the exchange before sending the message.
 
