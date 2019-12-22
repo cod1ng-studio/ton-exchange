@@ -1,0 +1,18 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <from_value> <from_currency_type> <from_currency> <to_value> <to_currency_type> <to_currency>" cr
+  ."Creates a insert_order message body" cr
+  ."" cr 1 halt
+} : usage
+$# dup 6 < swap 6 > or ' usage if
+
+$1 $>GR =: from_value
+$2 parse-int =: from_currency_type
+from_currency_type { <b $3 $>smca drop drop addr, b> } { <b $3 parse-int 32 i, b> } cond =: from_currency
+$4 $>GR =: to_value
+$5 parse-int =: to_currency_type
+to_currency_type { <b $6 $>smca drop drop addr, b> } { <b $6 parse-int 32 i, b> } cond =: to_currency
+
+<b 1 32 u, 0 64 u, from_value Gram, from_currency_type 8 u, from_currency <s s, to_value Gram, to_currency_type 8 u, to_currency <s s, b>
+dup  <s csr.

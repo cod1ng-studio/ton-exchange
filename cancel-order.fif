@@ -1,0 +1,16 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+
+{ ."usage: " @' $0 type ." <order_id>" cr
+  ."Creates a cancel_order message body" cr
+  ."" cr 1 halt
+} : usage
+$# dup 1 < swap 1 > or ' usage if
+
+$1 parse-int =: order_id
+
+<b 2 32 u, 0 64 u, order_id 64 u, b>
+dup ."resulting external message: " <s csr. cr
+2 boc+>B dup
+"insert.boc" tuck B>file
+."(Saved to file " type .")" cr

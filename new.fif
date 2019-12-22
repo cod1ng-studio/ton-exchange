@@ -1,0 +1,35 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+"Asm.fif" include
+
+{ ."usage: " @' $0 type ." <workchain-id>" cr
+  ."Creates a new exchange in specified workchain" cr 1 halt
+} : usage
+$# dup 1 < swap 1 > or ' usage if
+
+"dex" =: file_base
+$1 parse-workchain-id =: wc
+
+"dex.fif" include =: code
+
+<b 0 64 u,
+   null dict,
+b> =: data
+
+null =: libs
+
+<b b{0011} s, code ref, data ref, libs dict, b> =: state_init
+
+state_init hashu wc swap 2dup 2constant contract_addr
+
+."dex address = " 2dup .addr cr
+2dup file_base +".addr" save-address-verbose
+."Non-bounceable address (for init): " 2dup 7 .Addr cr
+."Bounceable address (for later access): " 6 .Addr cr
+
+<b  b> =: init_msg
+
+<b b{1000100} s, contract_addr addr, b{000010} s, state_init <s s, b{0} s, b> =: external_msg
+external_msg 2 boc+>B
+file_base +"-create.boc" tuck B>file
+."(Saved channel creating query to file " type .")" cr
