@@ -314,6 +314,11 @@ int get_extra_currency(slice currency) {
   cell extra_currencies = cs~load_dict();
 
   cs = in_msg;
+
+  if (cs.slice_bits() == 0) {  ;; just accept grams
+    return ();
+  }
+
   int action = cs~load_uint(32);
 
   if ((action == 0) & (cs.slice_bits() == 0)) { ;; just accept grams
@@ -337,7 +342,15 @@ int get_extra_currency(slice currency) {
 }
 
 () recv_external(slice sender, slice in_msg) impure {
+  (int seqno, cell orders) = (ds~load_uint(64), ds~load_dict());
+  throw_unless(60, seqno == 0);
   accept_message();
+  set_data(
+      begin_cell()
+        .store_uint(1, 64)
+        .store_dict(orders)
+        .end_cell()
+    );
 }
 
 int seqno() method_id {
