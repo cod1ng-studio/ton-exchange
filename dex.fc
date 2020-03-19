@@ -1,3 +1,5 @@
+;; todo: delete order.paid
+
 slice clone_slice(slice s) {
   return begin_cell().store_slice(s).end_cell().begin_parse();
 }
@@ -29,8 +31,8 @@ builder store_currency(builder b, slice currency) {
 }
 
 builder store_order(sender, from_value, from_currency, to_value, to_currency, paid) {
-  int time = now();
-;;  int time = 0; ;; todo: for test
+;;  int time = now();
+  int time = 0; ;; todo: for test
 
   builder ref = begin_cell()
     .store_grams(to_value)
@@ -77,7 +79,7 @@ int get_extra_currency(slice currency) {
   int isgram = is_gram(currency);
   int currency_id = get_extra_currency(currency);
 
-  if (isgram) {
+  if (isgram) { ;; transfer gram
 
     builder msg = begin_cell()
       .store_uint(0x18, 6)
@@ -88,8 +90,7 @@ int get_extra_currency(slice currency) {
 
     send_raw_message(msg.end_cell(), 0);
 
-  } elseif (currency_id) {
-    int gas_grams = 1 << 30; ;; ~1 gram of value to process
+  } elseif (currency_id) { ;; transfer extra currency
 
     cell currencies = new_dict();
     currencies~idict_set_builder(32, currency_id, begin_cell().store_grams(value));
@@ -98,61 +99,35 @@ int get_extra_currency(slice currency) {
       .store_uint(0x18, 6)
       .store_uint(0x4, 3)
       .store_slice(addr)
-      .store_grams(gas_grams)
+      .store_grams(0)
       .store_dict(currencies)
       .store_uint(0, 4 + 4 + 64 + 32 + 1 + 1);
 
-    send_raw_message(msg.end_cell(), 0);
+    send_raw_message(msg.end_cell(), 1);
 
-  } else {
-    int gas_grams = 1 << 30; ;; ~1 gram of value to process and obtain answer
+  } else { ;; transfer token
 
     builder msg = begin_cell()
       .store_uint(0x18, 6)
       .store_uint(0x4, 3)
       .store_slice(currency)
-      .store_grams(gas_grams)
+      .store_grams(0)
       .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-      .store_uint(1, 32) ;; transfer
+      .store_uint(1, 32) ;; transfer action
       .store_uint(order_id, 64)
       .store_slice(addr)
       .store_grams(value);
 
-    send_raw_message(msg.end_cell(), 0);
+    send_raw_message(msg.end_cell(), 1);
 
   }
-}
-
-() transfer_from(slice addr, int value, slice currency, int order_id) impure {
-  int gas_grams = 1 << 30; ;; ~1 gram of value to process and obtain answer
-
-  (int my_wc, slice my_val) = parse_var_addr(my_address());
-  slice my_addr = pack_addr(my_wc, my_val);
-;;  slice my_addr = addr; ;; todo: for test
-
-  builder ref = begin_cell()
-        .store_slice(addr)
-        .store_slice(my_addr)
-        .store_grams(value);
-
-  builder msg = begin_cell()
-      .store_uint(0x18, 6)
-      .store_uint(0x4, 3)
-      .store_slice(currency)
-      .store_grams(gas_grams)
-      .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-      .store_uint(2, 32) ;; transfer from
-      .store_uint(order_id, 64) ;; transfer from
-      .store_ref(ref.end_cell());
-
-  send_raw_message(msg.end_cell(), 0);
 }
 
 (cell, int, slice) find_match_order(cell orders, int _from_value, slice _from_currency, int _to_value, slice _to_currency) {
   int result_id = 0;
   slice result_sender = null();
-  int time = now();
-;;  int time = 0; ;; todo: for test
+;;  int time = now();
+  int time = 0; ;; todo: for test
 
   int i = -1;
   do {
@@ -193,12 +168,25 @@ int get_extra_currency(slice currency) {
   return (orders, match_order_id);
 }
 
+(int, cell) insert_order(int seqno, cell orders, slice sender, int from_value, slice from_currency, int to_value, slice to_currency) impure {
+  (orders, int matched) = try_match_order(orders, sender, 0, from_value, from_currency, to_value, to_currency);
+
+  if (matched == 0) {
+    seqno = seqno + 1;
+
+    builder b = store_order(sender, from_value, from_currency, to_value, to_currency, -1);
+    orders~udict_set_builder(64, seqno, b);
+  }
+
+  return (seqno, orders);
+}
+
 () process_user_msg(int action, int msg_value, cell extra_currencies, slice sender, slice cs) impure {
   int query_id = cs~load_uint(64);
 
   if (action > 2) {
     if (action < 0x80000000) { ;; not response
-      send_message_back(0xffffffff, sender, 0, 64, query_id, action);
+      send_message_back(0xffffffff, sender, 0, 64, query_id, action); ;; not supported
     }
     return ();
   }
@@ -206,7 +194,6 @@ int get_extra_currency(slice currency) {
   slice ds = get_data().begin_parse();
   (int seqno, cell orders) = (ds~load_uint(64), ds~load_dict());
   ds.end_parse();
-  int new_seqno = seqno;
 
   if (action == 1) { ;; insert order
     int from_value = cs~load_grams();
@@ -214,28 +201,26 @@ int get_extra_currency(slice currency) {
     int to_value = cs~load_grams();
     slice to_currency = cs~load_currency();
 
-    int matched = 0;
-    int isgram = is_gram(from_currency);
+    int is_token = 1;
+
+    if (is_gram(from_currency)) {
+      is_token = 0;
+
+;; todo      raw_reserve(msg_value, 3);
+    }
     int currency_id = get_extra_currency(from_currency);
     if (currency_id) {
-        (slice currency_slice, _) = extra_currencies.idict_get?(32, currency_id);
-        msg_value = currency_slice~load_grams();
-        isgram = -1;
+      (slice currency_slice, _) = extra_currencies.idict_get?(32, currency_id);
+      msg_value = currency_slice~load_grams();
+      is_token = 0;
+
+;; todo      raw_reserve(msg_value, 3);
     }
 
-    if (isgram) {
-      throw_unless(100, msg_value >= from_value);
-      (orders, matched) = try_match_order(orders, sender, 0, from_value, from_currency, to_value, to_currency);
-    } else {
-      transfer_from(sender, from_value, from_currency, seqno + 1);
-    }
+    throw_unless(100, msg_value >= from_value);
+    throw_unless(101, is_token == 0);
 
-    if (matched == 0) {
-      new_seqno = seqno + 1;
-
-      builder b = store_order(sender, from_value, from_currency, to_value, to_currency, isgram);
-      orders~udict_set_builder(64, new_seqno, b);
-    }
+    (seqno, orders) = insert_order(seqno, orders, sender, from_value, from_currency, to_value, to_currency);
 
   } elseif (action == 2) { ;; cancel order
 
@@ -257,51 +242,12 @@ int get_extra_currency(slice currency) {
 
   set_data(
     begin_cell()
-      .store_uint(new_seqno, 64)
-      .store_dict(orders)
-      .end_cell()
-  );
-
-;;  send_message_back(0x90000000, sender, need_return_one_gram ? 1000000000 : 0, need_return_one_gram ? 2 : 64, query_id, action);
-}
-
-() process_trc20_reply(slice sender, slice cs, int ok) impure {
-  int query_id = cs~load_uint(64);
-
-  if (ok & (cs~load_uint(32) != 2)) { ;; query_action != transfer_from
-    return ();
-  }
-
-  slice ds = get_data().begin_parse();
-  (int seqno, cell orders) = (ds~load_uint(64), ds~load_dict());
-  ds.end_parse();
-
-  (slice order_slice, int order_found) = orders.udict_get?(64, query_id);
-  if (order_found) {
-    (slice order_sender, int from_value, slice from_currency, int to_value, slice to_currency, int paid, int expired_at) = parse_order(order_slice);
-
-    if ((paid == 0) & (from_currency.slice_hash() == sender.slice_hash())) {
-
-      if (ok) {
-
-        (orders, int matched) = try_match_order(orders, order_sender, query_id, from_value, from_currency, to_value, to_currency);
-        if (matched == 0) {
-          builder b = store_order(order_sender, from_value, from_currency, to_value, to_currency, -1);
-
-          orders~udict_set_builder(64, query_id, b);
-        }
-      } else {
-        orders~udict_delete?(64, query_id);
-      }
-    }
-  }
-
-  set_data(
-    begin_cell()
       .store_uint(seqno, 64)
       .store_dict(orders)
       .end_cell()
   );
+
+  send_message_back(0x90000000, sender, 0, 64, query_id, action);
 }
 
 () recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
@@ -327,22 +273,45 @@ int get_extra_currency(slice currency) {
 
   if (flags & 1) { ;; bounced
 
-    if (action == 2) { ;; error reply from TRC20 transfer_from
-      process_trc20_reply(sender, cs, 0);
-    }
+    return ();
 
-  } elseif (action == 0x80000000) { ;; ok reply from TRC20 transfer_from
+  } elseif (action == 0x20000000) { ;; transfer from TRC20 token
 
-    process_trc20_reply(sender, cs, 1);
+    raw_reserve(msg_value, 3);
+
+    int query_id = cs~load_uint(64);
+    slice token_sender = cs~load_bits(264);
+    int token_value = cs~load_grams();
+    cs = cs~load_ref().begin_parse();
+    int to_value = cs~load_grams();
+    slice to_currency = cs~load_currency();
+
+    slice ds = get_data().begin_parse();
+    (int seqno, cell orders) = (ds~load_uint(64), ds~load_dict());
+    ds.end_parse();
+
+    (seqno, orders) = insert_order(seqno, orders, token_sender, token_value, sender, to_value, to_currency);
+
+    set_data(
+      begin_cell()
+        .store_uint(seqno, 64)
+        .store_dict(orders)
+        .end_cell()
+    );
+
+    send_message_back(0x90000000, sender, 0, 64, query_id, action);
 
   } else {
     (action, cs) = parse_msg(action, cs);
+
     process_user_msg(action, msg_value, extra_currencies, sender, cs);
   }
 }
 
 () recv_external(slice sender, slice in_msg) impure {
+  slice ds = get_data().begin_parse();
   (int seqno, cell orders) = (ds~load_uint(64), ds~load_dict());
+  ds.end_parse();
   throw_unless(60, seqno == 0);
   accept_message();
   set_data(

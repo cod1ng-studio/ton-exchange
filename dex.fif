@@ -1,4 +1,4 @@
-// automatically generated from `/Users/tolyayanot/lite-client/crypto/smartcont/stdlib.fc` `msg_hex_comment.fc` `dex/dex.fc` 
+// automatically generated from `/Users/tolyayanot/lite-client/crypto/smartcont/stdlib.fc` `msg_hex_comment.fc` `dex.fc` 
 PROGRAM{
   85643 DECLMETHOD str2bin
   DECLPROC parse_msg
@@ -12,11 +12,10 @@ PROGRAM{
   DECLPROC get_extra_currency
   DECLPROC send_message_back
   DECLPROC transfer
-  DECLPROC transfer_from
   DECLPROC find_match_order
   DECLPROC try_match_order
+  DECLPROC insert_order
   DECLPROC process_user_msg
-  DECLPROC process_trc20_reply
   DECLPROC recv_internal
   DECLPROC recv_external
   85143 DECLMETHOD seqno
@@ -38,121 +37,121 @@ PROGRAM{
       OVER
       48 EQINT
       IF:<{
-        NIP
         0 PUSHINT
-        s0 s3 XCHG2
+        s2 POP
+        s0 s3 XCHG
         4 STU
       }>ELSE<{
         OVER
         49 EQINT
         IF:<{
-          NIP
           1 PUSHINT
-          s0 s3 XCHG2
+          s2 POP
+          s0 s3 XCHG
           4 STU
         }>ELSE<{
           OVER
           50 EQINT
           IF:<{
-            NIP
             2 PUSHINT
-            s0 s3 XCHG2
+            s2 POP
+            s0 s3 XCHG
             4 STU
           }>ELSE<{
             OVER
             51 EQINT
             IF:<{
-              NIP
               3 PUSHINT
-              s0 s3 XCHG2
+              s2 POP
+              s0 s3 XCHG
               4 STU
             }>ELSE<{
               OVER
               52 EQINT
               IF:<{
-                NIP
                 4 PUSHINT
-                s0 s3 XCHG2
+                s2 POP
+                s0 s3 XCHG
                 4 STU
               }>ELSE<{
                 OVER
                 53 EQINT
                 IF:<{
-                  NIP
                   5 PUSHINT
-                  s0 s3 XCHG2
+                  s2 POP
+                  s0 s3 XCHG
                   4 STU
                 }>ELSE<{
                   OVER
                   54 EQINT
                   IF:<{
-                    NIP
                     6 PUSHINT
-                    s0 s3 XCHG2
+                    s2 POP
+                    s0 s3 XCHG
                     4 STU
                   }>ELSE<{
                     OVER
                     55 EQINT
                     IF:<{
-                      NIP
                       7 PUSHINT
-                      s0 s3 XCHG2
+                      s2 POP
+                      s0 s3 XCHG
                       4 STU
                     }>ELSE<{
                       OVER
                       56 EQINT
                       IF:<{
-                        NIP
                         8 PUSHINT
-                        s0 s3 XCHG2
+                        s2 POP
+                        s0 s3 XCHG
                         4 STU
                       }>ELSE<{
                         OVER
                         57 EQINT
                         IF:<{
-                          NIP
                           9 PUSHINT
-                          s0 s3 XCHG2
+                          s2 POP
+                          s0 s3 XCHG
                           4 STU
                         }>ELSE<{
                           OVER
                           65 EQINT
                           IF:<{
-                            NIP
                             10 PUSHINT
-                            s0 s3 XCHG2
+                            s2 POP
+                            s0 s3 XCHG
                             4 STU
                           }>ELSE<{
                             OVER
                             66 EQINT
                             IF:<{
-                              NIP
                               11 PUSHINT
-                              s0 s3 XCHG2
+                              s2 POP
+                              s0 s3 XCHG
                               4 STU
                             }>ELSE<{
                               OVER
                               67 EQINT
                               IF:<{
-                                NIP
                                 12 PUSHINT
-                                s0 s3 XCHG2
+                                s2 POP
+                                s0 s3 XCHG
                                 4 STU
                               }>ELSE<{
                                 OVER
                                 68 EQINT
                                 IF:<{
-                                  NIP
                                   13 PUSHINT
-                                  s0 s3 XCHG2
+                                  s2 POP
+                                  s0 s3 XCHG
                                   4 STU
                                 }>ELSE<{
                                   OVER
                                   69 EQINT
                                   IF:<{
-                                    NIP
                                     14 PUSHINT
-                                    s0 s3 XCHG2
+                                    s2 POP
+                                    s0 s3 XCHG
                                     4 STU
                                   }>ELSE<{
                                     SWAP
@@ -161,9 +160,9 @@ PROGRAM{
                                       15 PUSHINT
                                       s0 s3 XCHG2
                                       4 STU
-                                    }>ELSE<{
                                       s0 s2 XCHG
                                     }>
+                                    s0 s2 XCHG
                                   }>
                                 }>
                               }>
@@ -245,8 +244,8 @@ PROGRAM{
     CTOS
   }>
   pack_addr PROC:<{
+    SWAP
     NEWC
-    s1 s2 XCHG
     8 STI
     SWAP
     STSLICER
@@ -299,9 +298,7 @@ PROGRAM{
     s4 s5 XCHG
   }>
   store_order PROC:<{
-    NOW
     86400 PUSHINT
-    ADD
     NEWC
     s0 s4 XCHG2
     STGRAMS
@@ -387,14 +384,12 @@ PROGRAM{
     }>ELSE<{
       DUP
       IF:<{
-        NIP
-        NIP
-        30 PUSHPOW2
+        2 1 BLKDROP2
         NEWDICT
         NEWC
-        s0 s4 XCHG2
+        s0 s3 XCHG2
         STGRAMS
-        s0 s0 s3 XCHG3
+        s0 s2 XCHG
         32 PUSHINT
         DICTISETB
         0 PUSHINT
@@ -403,18 +398,17 @@ PROGRAM{
         NEWC
         6 STU
         3 STU
-        s0 s4 XCHG2
+        s0 s3 XCHG2
         STSLICER
-        ROT
+        s2 PUSH
         STGRAMS
         STDICT
         106 STU
         ENDC
-        0 PUSHINT
+        1 PUSHINT
         SENDRAWMSG
       }>ELSE<{
         DROP
-        30 PUSHPOW2
         1 PUSHINT
         0 PUSHINT
         4 PUSHINT
@@ -422,9 +416,9 @@ PROGRAM{
         NEWC
         6 STU
         3 STU
-        s0 s5 XCHG2
+        s0 s4 XCHG2
         STSLICER
-        ROT
+        s3 PUSH
         STGRAMS
         s1 s3 XCHG
         107 STU
@@ -436,65 +430,29 @@ PROGRAM{
         SWAP
         STGRAMS
         ENDC
-        0 PUSHINT
+        1 PUSHINT
         SENDRAWMSG
       }>
     }>
   }>
-  transfer_from PROC:<{
-    30 PUSHPOW2
-    MYADDR
-    REWRITEVARADDR
-    pack_addr CALLDICT
-    NEWC
-    s0 s6 XCHG2
-    STSLICER
-    s0 s5 XCHG2
-    STSLICER
-    s0 s3 XCHG2
-    STGRAMS
-    ENDC
-    2 PUSHINT
-    0 PUSHINT
-    4 PUSHINT
-    24 PUSHINT
-    NEWC
-    6 STU
-    3 STU
-    s0 s4 XCHG2
-    STSLICER
-    s0 s5 XCHG2
-    STGRAMS
-    s1 s2 XCHG
-    107 STU
-    s1 s3 XCHG
-    32 STU
-    64 STU
-    STREF
-    ENDC
-    0 PUSHINT
-    SENDRAWMSG
-  }>
   find_match_order PROC:<{
     0 PUSHINT
     PUSHNULL
-    NOW
     -1 PUSHINT
     UNTIL:<{
-      s8 PUSH
+      s7 PUSH
       64 PUSHINT
       DICTUGETNEXT
-      NULLSWAPIFNOT
-      NULLSWAPIFNOT
+      NULLSWAPIFNOT2
       DUP
       IF:<{
         s0 s2 XCHG
         parse_order CALLDICT
-        s15 s3 PUXC
+        s14 s3 PUXC
         EQUAL
         s1 s(-1) PUXC
         AND
-        s14 PUSH
+        s13 PUSH
         HASHSU
         s0 s3 XCHG
         HASHSU
@@ -502,10 +460,10 @@ PROGRAM{
         EQUAL
         s1 s2 XCHG
         AND
-        s12 s4 PUSH2
+        s11 s4 PUSH2
         EQUAL
         AND
-        s11 PUSH
+        s10 PUSH
         HASHSU
         s4 PUSH
         HASHSU
@@ -513,12 +471,12 @@ PROGRAM{
         AND
         IF:<{
           4 BLKDROP
-          s4 POP
-          s4 POP
-          s3 PUSH
+          s3 POP
+          s3 POP
+          s2 PUSH
         }>ELSE<{
-          s1 s7 XCPU
-          LESS
+          SWAP
+          0 LESSINT
           IF:<{
             IF:<{
               s3 PUSH
@@ -526,33 +484,28 @@ PROGRAM{
             }>ELSE<{
               3 BLKDROP
             }>
+            s0 s8 PUXC
             64 PUSHINT
-            s1 s10 s10 PUXC2
             DICTUDEL
             DROP
+            s0 s8 XCHG
           }>ELSE<{
-            s4 s13 XCHG
             4 BLKDROP
           }>
-          s0 s9 XCHG
-          s0 s4 XCHG
+          s0 s3 XCHG
         }>
+        s0 s3 XCHG
       }>ELSE<{
-        s5 s2 XCHG2
-        DROP
+        s2 POP
       }>
       SWAP
       NOT
-      OVER
+      s3 PUSH
       0 GTINT
       OR
-      s1 s4 XCHG
     }>
-    2DROP
-    s2 POP
-    s2 POP
-    s2 POP
-    s2 POP
+    DROP
+    4 2 BLKDROP2
   }>
   try_match_order PROC:<{
     s6 s3 s2 XCPU2
@@ -581,11 +534,32 @@ PROGRAM{
       64 PUSHINT
       DICTUDEL
       DROP
+      SWAP
     }>ELSE<{
-      s7 s8 s0 XCHG3
-      7 BLKDROP
+      DROP
+      6 2 BLKDROP2
     }>
-    SWAP
+  }>
+  insert_order PROC:<{
+    s5 s4 XCPU
+    0 PUSHINT
+    s5 s4 s3 PUSH3
+    s10 PUSH
+    try_match_order CALLDICT
+    0 EQINT
+    IF:<{
+      s0 s6 XCHG
+      INC
+      s0 s5 XCHG
+      -1 PUSHINT
+      store_order CALLDICT
+      s0 s0 s2 XCPUXC
+      64 PUSHINT
+      DICTUSETB
+    }>ELSE<{
+      s0 s5 XCHG
+      5 BLKDROP
+    }>
   }>
   process_user_msg PROC:<{
     64 LDU
@@ -593,8 +567,7 @@ PROGRAM{
     2 GTINT
     IFJMP:<{
       DROP
-      s2 POP
-      s2 POP
+      2 2 BLKDROP2
       s2 PUSH
       31 PUSHPOW2
       LESS
@@ -609,16 +582,14 @@ PROGRAM{
         3 BLKDROP
       }>
     }>
-    NIP
     c4 PUSH
     CTOS
     64 LDU
     LDDICT
     ENDS
-    s1 s6 PUSH2
+    s7 PUSH
     1 EQINT
     IF:<{
-      s7 POP
       s0 s2 XCHG
       LDGRAMS
       ~load_currency CALLDICT
@@ -626,10 +597,14 @@ PROGRAM{
       LDGRAMS
       ~load_currency CALLDICT
       NIP
-      0 PUSHINT
+      1 PUSHINT
       s3 PUSH
       is_gram CALLDICT
-      s4 PUSH
+      IF:<{
+        DROP
+        0 PUSHINT
+      }>
+      s3 PUSH
       get_extra_currency CALLDICT
       DUP
       IF:<{
@@ -642,60 +617,34 @@ PROGRAM{
         DROP
         LDGRAMS
         DROP
-        -1 PUSHINT
-      }>ELSE<{
-        s3 s11 XCHG
-        s1 s10 s0 XCHG3
-        2DROP
-      }>
-      DUP
-      IF:<{
-        s8 POP
-        s3 PUSH
-        GEQ
-        100 THROWIFNOT
-        s4 s5 XCPU
+        s0 s8 XCHG
         0 PUSHINT
-        s4 s3 s6 PUSH3
-        s12 PUSH
-        try_match_order CALLDICT
+        s0 s8 XCHG
       }>ELSE<{
-        NIP
-        s4 PUSH
-        INC
-        s7 s4 s(-2) PU2XC
-        s5 s(-1) PUXC
-        transfer_from CALLDICT
-        s5 s7 XCHG2
+        DROP
+        s9 POP
       }>
+      s9 s3 XCPU
+      GEQ
+      100 THROWIFNOT
+      s0 s7 XCHG
       0 EQINT
-      IF:<{
-        s8 POP
-        s0 s2 XCHG
-        INC
-        s4 s5 XCHG
-        4 1 REVERSE
-        s6 s6 XCHG2
-        store_order CALLDICT
-        SWAP
-        64 PUSHINT
-        s1 s3 s3 PUXC2
-        DICTUSETB
-      }>ELSE<{
-        s0 s7 XCHG
-        7 BLKDROP
-      }>
-    }>ELSE<{
-      s2 POP
-      s4 POP
-      s4 POP
+      101 THROWIFNOT
+      4 2 REVERSE
+      s2 PUSH
       s0 s4 XCHG
+      s1 s3 s8 XCHG3
+      s1 s7 XCHG
+      insert_order CALLDICT
+    }>ELSE<{
+      s5 POP
+      s5 POP
+      s5 PUSH
       2 EQINT
       IF:<{
-        s0 s3 XCHG
         64 LDU
         DROP
-        s0 s1 PUSH2
+        s0 s3 PUSH2
         64 PUSHINT
         DICTUGET
         NULLSWAPIFNOT
@@ -705,123 +654,45 @@ PROGRAM{
           3 BLKDROP
           s3 PUSH
           HASHSU
-          s0 s8 XCHG
+          s7 PUSH
           HASHSU
-          s1 s8 XCHG
           EQUAL
           IF:<{
-            s0 s6 XCHG
             IF:<{
-              s1 s0 s5 XCHG3
-              s5 PUSH
+              s3 PUSH
               transfer CALLDICT
             }>ELSE<{
-              s2 s5 XCHG
               3 BLKDROP
             }>
-            s1 s2 XCHG
+            s0 s3 XCHG2
             64 PUSHINT
             DICTUDEL
             DROP
+            s0 s2 XCHG
           }>ELSE<{
-            s5 s6 XCHG
-            s4 s5 XCHG
             5 BLKDROP
           }>
         }>ELSE<{
-          s3 s4 XCHG
-          s2 s3 XCHG
-          3 BLKDROP
+          2DROP
         }>
       }>ELSE<{
-        s1 s3 s0 XCHG3
-        2DROP
+        DROP
       }>
+      s1 s3 s3 XCHG3
     }>
-    NEWC
-    s1 s2 XCHG
-    64 STU
-    STDICT
-    ENDC
-    c4 POP
-  }>
-  process_trc20_reply PROC:<{
     SWAP
-    64 LDU
-    32 LDU
-    DROP
-    2 NEQINT
-    s2 s(-1) PUXC
-    AND
-    IFJMP:<{
-      3 BLKDROP
-    }>
-    c4 PUSH
-    CTOS
-    64 LDU
-    LDDICT
-    ENDS
-    s2 s0 PUSH2
-    64 PUSHINT
-    DICTUGET
-    NULLSWAPIFNOT
-    IF:<{
-      parse_order CALLDICT
-      DROP
-      0 EQINT
-      s3 PUSH
-      HASHSU
-      s0 s11 XCHG
-      HASHSU
-      s1 s11 XCHG
-      EQUAL
-      s1 s10 XCHG
-      AND
-      IF:<{
-        s0 s7 XCHG
-        IF:<{
-          s3 s2 s5 XCPU2
-          s3 s5 s8 PUSH3
-          s12 PUSH
-          try_match_order CALLDICT
-          0 EQINT
-          IF:<{
-            s4 s3 s0 XCHG3
-            s1 s6 s7 XCHG3
-            -1 PUSHINT
-            store_order CALLDICT
-            s0 s1 s3 XCHG3
-            64 PUSHINT
-            DICTUSETB
-          }>ELSE<{
-            s4 s7 XCHG
-            s0 s6 XCHG
-            6 BLKDROP
-          }>
-        }>ELSE<{
-          3 BLKDROP
-          s3 POP
-          s3 POP
-          SWAP
-          64 PUSHINT
-          DICTUDEL
-          DROP
-        }>
-      }>ELSE<{
-        s5 s8 XCHG
-        s4 s7 XCHG
-        7 BLKDROP
-      }>
-    }>ELSE<{
-      s5 s4 s0 XCHG3
-      4 BLKDROP
-    }>
     NEWC
-    s1 s2 XCHG
     64 STU
     STDICT
     ENDC
     c4 POP
+    2415919104 PUSHINT
+    s0 s3 XCHG
+    0 PUSHINT
+    s0 s1 s3 XCHG3
+    64 PUSHINT
+    s0 s2 XCHG
+    send_message_back CALLDICT
   }>
   recv_internal PROC:<{
     SWAP
@@ -836,6 +707,12 @@ PROGRAM{
     NIP
     LDDICT
     DROP
+    s3 PUSH
+    SBITS
+    0 EQINT
+    IFJMP:<{
+      5 BLKDROP
+    }>
     s0 s3 XCHG
     32 LDU
     OVER
@@ -850,40 +727,74 @@ PROGRAM{
     s0 s3 XCHG
     1 PUSHINT
     AND
+    IFJMP:<{
+      5 BLKDROP
+    }>
+    DUP
+    29 PUSHPOW2
+    EQUAL
     IF:<{
       s3 POP
-      s3 POP
+      s0 s3 XCHG
+      3 PUSHINT
+      RAWRESERVE
+      64 LDU
+      264 PUSHINT
+      LDSLICEX
+      LDGRAMS
+      LDREF
+      DROP
+      CTOS
+      LDGRAMS
+      ~load_currency CALLDICT
+      NIP
+      c4 PUSH
+      CTOS
+      64 LDU
+      LDDICT
+      ENDS
+      4 2 BLKSWAP
+      s8 PUSH
+      -ROT
+      insert_order CALLDICT
       SWAP
-      2 EQINT
-      IF:<{
-        0 PUSHINT
-        process_trc20_reply CALLDICT
-      }>ELSE<{
-        2DROP
-      }>
+      NEWC
+      64 STU
+      STDICT
+      ENDC
+      c4 POP
+      2415919104 PUSHINT
+      s0 s3 XCHG
+      0 PUSHINT
+      2SWAP
+      64 PUSHINT
+      s0 s2 XCHG
+      send_message_back CALLDICT
     }>ELSE<{
-      DUP
-      31 PUSHPOW2
-      EQUAL
-      IF:<{
-        DROP
-        s2 POP
-        s2 POP
-        SWAP
-        1 PUSHINT
-        process_trc20_reply CALLDICT
-      }>ELSE<{
-        ROT
-        parse_msg CALLDICT
-        s1 s4 XCHG
-        s3 s3 s0 XCHG3
-        process_user_msg CALLDICT
-      }>
+      ROT
+      parse_msg CALLDICT
+      s1 s4 XCHG
+      s3 s3 s0 XCHG3
+      process_user_msg CALLDICT
     }>
   }>
   recv_external PROC:<{
     2DROP
+    c4 PUSH
+    CTOS
+    64 LDU
+    LDDICT
+    ENDS
+    SWAP
+    0 EQINT
+    60 THROWIFNOT
     ACCEPT
+    1 PUSHINT
+    NEWC
+    64 STU
+    STDICT
+    ENDC
+    c4 POP
   }>
   seqno PROC:<{
     c4 PUSH
@@ -906,8 +817,7 @@ PROGRAM{
       s2 PUSH
       64 PUSHINT
       DICTUGETNEXT
-      NULLSWAPIFNOT
-      NULLSWAPIFNOT
+      NULLSWAPIFNOT2
       DUP
       IF:<{
         s0 s2 XCHG
@@ -953,28 +863,27 @@ PROGRAM{
           PAIR
           s1 s2 XCHG
           TRIPLE
-          s2 s(-1) s(-1) PUXC2
+          s2 PUSH
+          -ROT
           TRIPLE
           s0 s3 XCHG2
           CONS
+          s0 s2 XCHG
         }>ELSE<{
-          s6 s8 XCHG
           6 BLKDROP
         }>
       }>ELSE<{
-        2SWAP
-        DROP
+        s2 POP
       }>
       SWAP
       NOT
-      s1 s2 XCHG
     }>
     s1 s5 XCHG
     5 BLKDROP
   }>
   my_orders PROC:<{
+    SWAP
     NEWC
-    s1 s2 XCHG
     8 STI
     256 STU
     ENDC

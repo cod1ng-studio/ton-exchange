@@ -1,0 +1,120 @@
+#!/usr/bin/env fift -s
+"TonUtil.fif" include
+"Asm.fif" include
+
+"owner.addr" load-address 2dup 2constant owner_addr
+
+variable storage
+variable exit_code
+
+{ storage ! exit_code ! } : finish_run
+{ exit_code @ 0 = not abort"command failed" } : exit_grace
+
+{
+  ."Exit code " exit_code @ . cr
+  ."Updated storage: " cr storage @ <s csr. cr
+  ."Stack:" cr .s
+} : print_result
+
+"dex.fif" include =: code
+
+// <b owner_addr addr, owner_addr addr, 0 Gram, owner_addr addr, 0 Gram, b> <s 1 dictnew 64 udict! drop =: orders
+null =: orders
+
+// init storage
+<b 0 64 u,
+   orders dict,
+b> storage !
+
+// cr cr ."SEQNO" cr cr
+//
+// 85143 code <s storage @ runvm
+// finish_run print_result exit_grace
+//
+// cr cr ."ORDERS" cr cr
+//
+// "" $>s
+// "" $>s
+// "" $>s
+//
+// 65641 code <s storage @ runvm
+// finish_run print_result exit_grace
+
+// dns subdomain (param0)
+// <b owner_addr addr,  b> <s
+
+// dns category (param1)
+// <b owner_addr addr,  b> <s
+
+// <b owner_addr addr, b> <s
+
+// <b "D7BD78316F906085A749DC1B0FE3D6F553F6A10CFBCE36F3405F5E10000B2BFAC4461DDF2B0D7BD78316F906085A749DC1B0FE3D6F553F6A10CFBCE36F3" $>s s, b> =: ref0
+
+// <b
+// "00000001413AB668000B2BFAC4461DDF2B0" $>s s,
+// ref0 ref,
+// b> <s
+ cr cr ."INSERT ORDER 1 GRAM -> 1 GRAM" cr cr
+
+ 3000000000000
+
+ <b 0 1 i, b{000100} s, owner_addr addr, 0 Gram, b{00} s, b>
+
+ <b 1 32 u, 0 64 u, 1000000000 Gram, 0 8 u, 0 32 i, 1000000000 Gram, 0 8 u, 0 32 i, b> <s
+
+ 90191 code <s storage @ runvm
+ finish_run print_result exit_grace
+
+// cr cr ."SEQNO" cr cr
+//
+// 85143 code <s storage @ runvm
+// finish_run print_result exit_grace
+//
+// cr cr ."ORDERS" cr cr
+//
+// "" $>s
+// "" $>s
+// "" $>s
+//
+// 65641 code <s storage @ runvm
+// finish_run print_result exit_grace
+
+// storage @ <s 64 u@
+
+// storage @ <s ref@ =: orders
+
+// 1 orders 64 udict@ .s
+
+cr cr ."INSERT ORDER 1 GRAM -> 1 GRAM" cr cr
+
+ 3000000000000
+
+ <b 0 1 i, b{000100} s, owner_addr addr, 3 Gram, b{00} s, b>
+
+ <b 0 32 u, "00000001000000000000000043B9ACA00000000000043B9ACA000000000000" $>s s, b> <s
+
+ 90191 code <s storage @ runvm
+ finish_run print_result exit_grace
+
+
+// cr cr ."SEQNO" cr cr
+
+// 85143 code <s storage @ runvm
+// finish_run print_result exit_grace
+
+ cr cr ."ORDERS" cr cr
+
+ "" $>s
+ "" $>s
+ "" $>s
+
+ 65641 code <s storage @ runvm
+ finish_run print_result exit_grace
+
+// storage @ <s 64 u@
+
+// storage @ <s ref@ =: orders
+
+// 1 orders 64 udict@ .s
+
+."need print empty orders" cr
