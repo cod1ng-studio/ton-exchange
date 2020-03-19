@@ -195,6 +195,8 @@ int get_extra_currency(slice currency) {
   (int seqno, cell orders) = (ds~load_uint(64), ds~load_dict());
   ds.end_parse();
 
+  int need_return_one_gram = 0;
+
   if (action == 1) { ;; insert order
     int from_value = cs~load_grams();
     slice from_currency = cs~load_currency();
@@ -206,18 +208,17 @@ int get_extra_currency(slice currency) {
     if (is_gram(from_currency)) {
       is_token = 0;
 
-;; todo      raw_reserve(msg_value, 3);
+      throw_unless(100, msg_value >= from_value + 1000000000);
+      need_return_one_gram = 1;
     }
     int currency_id = get_extra_currency(from_currency);
     if (currency_id) {
       (slice currency_slice, _) = extra_currencies.idict_get?(32, currency_id);
       msg_value = currency_slice~load_grams();
       is_token = 0;
-
-;; todo      raw_reserve(msg_value, 3);
+      throw_unless(100, msg_value >= from_value);
     }
 
-    throw_unless(100, msg_value >= from_value);
     throw_unless(101, is_token == 0);
 
     (seqno, orders) = insert_order(seqno, orders, sender, from_value, from_currency, to_value, to_currency);
@@ -247,7 +248,11 @@ int get_extra_currency(slice currency) {
       .end_cell()
   );
 
-  send_message_back(0x90000000, sender, 0, 64, query_id, action);
+  if (need_return_one_gram) {
+    send_message_back(0x90000000, sender, 1000000000, 2, query_id, action);
+  } else {
+    send_message_back(0x90000000, sender, 0, 64, query_id, action);
+  }
 }
 
 () recv_internal(int msg_value, cell in_msg_cell, slice in_msg) impure {
@@ -276,8 +281,6 @@ int get_extra_currency(slice currency) {
     return ();
 
   } elseif (action == 0x20000000) { ;; transfer from TRC20 token
-
-    raw_reserve(msg_value, 3);
 
     int query_id = cs~load_uint(64);
     slice token_sender = cs~load_bits(264);
