@@ -21,7 +21,7 @@ const fiftInt = path + 'liteclient-build/crypto/fift';
 const litenode = cmd => path + 'liteclient-build/lite-client/lite-client -C ' + path + 'liteclient-build/ton-lite-client-test1.config.json -c"' + cmd + '"';
 
 
-const dex_addr = 'kQBTSIMSxM4ifNlbZbabhaETNhKQS1EvQAWZ1KekcmujxT0E';
+const dex_addr = 'kQChmZFQneZ6AUXG-eBkqcw_8WI6HQTD4i0Z9OTpJIYDH03t';
 
 const currencies = {
     0: {
