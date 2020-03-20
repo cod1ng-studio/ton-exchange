@@ -753,8 +753,12 @@ PROGRAM{
       5 BLKDROP
     }>
     DUP
-    29 PUSHPOW2
+    536870913 PUSHINT
     EQUAL
+    OVER
+    536870914 PUSHINT
+    EQUAL
+    OR
     IF:<{
       s3 POP
       s3 POP
@@ -773,9 +777,9 @@ PROGRAM{
       64 LDU
       LDDICT
       ENDS
-      4 2 BLKSWAP
-      s8 PUSH
-      -ROT
+      s5 s4 s1 XC2PU
+      s9 s3 s4 XCHG3
+      SWAP
       insert_order CALLDICT
       SWAP
       NEWC

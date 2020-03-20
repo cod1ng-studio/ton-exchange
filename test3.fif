@@ -93,12 +93,11 @@ b> storage !
 
  <b 1 Gram, 0 8 u, 0 32 i, b> =: PAYLOAD
 
- <b 0x20000000 32 u, 0 64 u, owner_addr addr, 1 Gram, PAYLOAD ref, b> <s
+ <b 0x20000001 32 u, 0 64 u, owner_addr addr, 1 Gram, PAYLOAD ref, b> <s
 
  90191 code <s storage @ runvm
  finish_run print_result exit_grace
 
-  cr cr ."OK FROM TRC20" cr cr
 
 // 3000000000000
 //
