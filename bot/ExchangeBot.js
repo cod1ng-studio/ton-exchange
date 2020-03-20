@@ -97,6 +97,23 @@ const createOrder = (fromValue, fromAddr, toValue, toAddr) => new Promise((resol
     });
 });
 
+const createTokenOrder = (fromValue, fromAddr, toValue, toAddr) => new Promise((resolve, reject) => {
+    const fromCurrencyType = currencies[fromAddr].isToken;
+    const toCurrencyType = currencies[toAddr].isToken;
+
+    exec([fift, 'transfer-dex.fif', 'dex.addr', fromValue, toValue, toCurrencyType, toAddr].join(' '), (err, stdout, stderr) => {
+        if (err) {
+            reject()
+        } else {
+            if (stdout.startsWith('x{')) {
+                resolve(stdout.substring(2, stdout.length - 2));
+            } else {
+                reject()
+            }
+        }
+    });
+});
+
 const createApprove = (fromValue) => new Promise((resolve, reject) => {
     exec([fift, 'approve.fif', dex_addr, fromValue].join(' '), (err, stdout, stderr) => {
         if (err) {
@@ -302,11 +319,20 @@ const showApproveLink = async (ctx) => {
 };
 
 const showOrderLink = async (ctx) => {
-    const s = await createOrder(ctx.session.fromAmount, ctx.session.fromAddr, ctx.session.toAmount, ctx.session.toAddr);
+    let s;
+    const fromToken = currencies[ctx.session.fromAddr].isToken;
+    if (fromToken) {
+        s = await createTokenOrder(ctx.session.fromAmount, ctx.session.fromAddr, ctx.session.toAmount, ctx.session.toAddr);
+    } else {
+        s = await createOrder(ctx.session.fromAmount, ctx.session.fromAddr, ctx.session.toAmount, ctx.session.toAddr);
+    }
 
-    const amount = ctx.session.fromAddr === '0' ? Number(ctx.session.fromAmount) + 2 : 2;
+    const amount = ctx.session.fromAddr === '0' ? Number(ctx.session.fromAmount) + 1 : 1;
 
-    const link = 'ton://transfer/' + dex_addr + '?amount=' + toGram(amount) + '&text=' + s;
+    const link = fromToken ?
+        'ton://transfer/' + ctx.session.fromAddr + '?amount=' + toGram(amount) + '&text=' + s
+        :
+        'ton://transfer/' + dex_addr + '?amount=' + toGram(amount) + '&text=' + s;
 
     showQR(ctx, link);
 
@@ -451,9 +477,7 @@ exchangeBot.on('text', (ctx) => {
 
             acceptAmount(ctx, () => {
                 ctx.session.counter++;
-                if (!currencies[ctx.session.fromAddr].isToken) {
-                    ctx.session.counter++;
-                }
+                ctx.session.counter++;
                 showState(ctx);
             });
             break;

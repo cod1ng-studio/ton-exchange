@@ -280,7 +280,7 @@ int get_extra_currency(slice currency) {
 
     return ();
 
-  } elseif (action == 0x20000000) { ;; transfer from TRC20 token
+  } elseif (action == 0x20000001 | action == 0x20000002) { ;; TRC20 token transfer or transfer_from
 
     int query_id = cs~load_uint(64);
     slice token_sender = cs~load_bits(264);
@@ -302,7 +302,7 @@ int get_extra_currency(slice currency) {
         .end_cell()
     );
 
-    send_message_back(0x90000000, sender, 0, 64, query_id, action);
+    send_message_back(0x90000000, token_sender, 0, 64, query_id, action);
 
   } else {
     (action, cs) = parse_msg(action, cs);
