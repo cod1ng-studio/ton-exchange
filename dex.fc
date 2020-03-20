@@ -29,8 +29,8 @@ builder store_currency(builder b, slice currency) {
 }
 
 builder store_order(sender, from_value, from_currency, to_value, to_currency, paid) {
-;;  int time = now();
-  int time = 0; ;; todo: for test
+  int time = now();
+;;  int time = 0; ;; todo: for test
 
   builder ref = begin_cell()
     .store_grams(to_value)
@@ -73,7 +73,7 @@ int get_extra_currency(slice currency) {
   send_raw_message(msg.end_cell(), mode);
 }
 
-() transfer(slice addr, int value, slice currency, int order_id) impure {
+() transfer(slice addr, int value, slice currency, int order_id, int fee_value) impure {
   int isgram = is_gram(currency);
   int currency_id = get_extra_currency(currency);
 
@@ -97,11 +97,11 @@ int get_extra_currency(slice currency) {
       .store_uint(0x18, 6)
       .store_uint(0x4, 3)
       .store_slice(addr)
-      .store_grams(0)
+      .store_grams(fee_value)
       .store_dict(currencies)
       .store_uint(0, 4 + 4 + 64 + 32 + 1 + 1);
 
-    send_raw_message(msg.end_cell(), 1);
+    send_raw_message(msg.end_cell(), 0);
 
   } else { ;; transfer token
 
@@ -109,14 +109,14 @@ int get_extra_currency(slice currency) {
       .store_uint(0x18, 6)
       .store_uint(0x4, 3)
       .store_slice(currency)
-      .store_grams(0)
+      .store_grams(fee_value)
       .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
       .store_uint(1, 32) ;; transfer action
       .store_uint(order_id, 64)
       .store_slice(addr)
       .store_grams(value);
 
-    send_raw_message(msg.end_cell(), 1);
+    send_raw_message(msg.end_cell(), 0);
 
   }
 }
@@ -124,8 +124,6 @@ int get_extra_currency(slice currency) {
 (cell, int, slice) find_match_order(cell orders, int _from_value, slice _from_currency, int _to_value, slice _to_currency) {
   int result_id = 0;
   slice result_sender = null();
-;;  int time = now();
-  int time = 0; ;; todo: for test
 
   int i = -1;
   do {
@@ -137,12 +135,6 @@ int get_extra_currency(slice currency) {
           (_to_value == from_value) & (_to_currency.slice_hash() == from_currency.slice_hash())) {
         result_id = i;
         result_sender = sender;
-      } elseif (expired_at < time) {
-        if (paid) {
-          transfer(sender, from_value, from_currency, i); ;; return funds
-        }
-
-        orders~udict_delete?(64, i);
       }
     }
   } until ((~ f) | (result_id > 0));
@@ -150,12 +142,12 @@ int get_extra_currency(slice currency) {
   return (orders, result_id, result_sender);
 }
 
-(cell, int) try_match_order(cell orders, slice sender, int id, int from_value, slice from_currency, int to_value, slice to_currency) impure {
+(cell, int) try_match_order(cell orders, slice sender, int id, int from_value, slice from_currency, int to_value, slice to_currency, int fee_value) impure {
   (orders, int match_order_id, slice match_order_sender) = find_match_order(orders, from_value, from_currency, to_value, to_currency);
 
   if (match_order_id > 0) {
-    transfer(sender, to_value, to_currency, id);
-    transfer(match_order_sender, from_value, from_currency, match_order_id);
+    transfer(sender, to_value, to_currency, id, fee_value / 2);
+    transfer(match_order_sender, from_value, from_currency, match_order_id, fee_value / 2);
 
     if (id > 0) {
       orders~udict_delete?(64, id);
@@ -166,8 +158,8 @@ int get_extra_currency(slice currency) {
   return (orders, match_order_id);
 }
 
-(int, cell) insert_order(int seqno, cell orders, slice sender, int from_value, slice from_currency, int to_value, slice to_currency) impure {
-  (orders, int matched) = try_match_order(orders, sender, 0, from_value, from_currency, to_value, to_currency);
+(int, cell) insert_order(int seqno, cell orders, slice sender, int from_value, slice from_currency, int to_value, slice to_currency, int fee_value) impure {
+  (orders, int matched) = try_match_order(orders, sender, 0, from_value, from_currency, to_value, to_currency, fee_value);
 
   if (matched == 0) {
     seqno = seqno + 1;
@@ -193,6 +185,7 @@ int get_extra_currency(slice currency) {
   (int seqno, cell orders) = (ds~load_uint(64), ds~load_dict());
   ds.end_parse();
 
+  int fee_value = msg_value;
   int need_return_one_gram = 0;
 
   if (action == 1) { ;; insert order
@@ -207,6 +200,7 @@ int get_extra_currency(slice currency) {
       is_token = 0;
 
       throw_unless(100, msg_value >= from_value + 1000000000);
+      fee_value -= 1000000000;
       need_return_one_gram = 1;
     }
     int currency_id = get_extra_currency(from_currency);
@@ -219,7 +213,7 @@ int get_extra_currency(slice currency) {
 
     throw_unless(101, is_token == 0);
 
-    (seqno, orders) = insert_order(seqno, orders, sender, from_value, from_currency, to_value, to_currency);
+    (seqno, orders) = insert_order(seqno, orders, sender, from_value, from_currency, to_value, to_currency, fee_value);
 
   } elseif (action == 2) { ;; cancel order
 
@@ -228,9 +222,12 @@ int get_extra_currency(slice currency) {
     if (order_found) {
       (slice order_sender, int from_value, slice from_currency, int to_value, slice to_currency, int paid, int expired_at) = parse_order(order_slice);
 
-      if (order_sender.slice_hash() == sender.slice_hash()) {
+      int time = now();
+;;      int time = 0; ;; todo: for test
+
+      if ((order_sender.slice_hash() == sender.slice_hash()) | (expired_at < time)) {
         if (paid) {
-          transfer(order_sender, from_value, from_currency, order_id); ;; return funds
+          transfer(order_sender, from_value, from_currency, order_id, fee_value); ;; return funds
         }
 
         orders~udict_delete?(64, order_id);
@@ -248,8 +245,6 @@ int get_extra_currency(slice currency) {
 
   if (need_return_one_gram) {
     send_message_back(0x90000000, sender, 1000000000, 2, query_id, action);
-  } else {
-    send_message_back(0x90000000, sender, 0, 64, query_id, action);
   }
 }
 
@@ -291,7 +286,9 @@ int get_extra_currency(slice currency) {
     (int seqno, cell orders) = (ds~load_uint(64), ds~load_dict());
     ds.end_parse();
 
-    (seqno, orders) = insert_order(seqno, orders, token_sender, token_value, sender, to_value, to_currency);
+    int fee_value = msg_value;
+
+    (seqno, orders) = insert_order(seqno, orders, token_sender, token_value, sender, to_value, to_currency, fee_value);
 
     set_data(
       begin_cell()
@@ -299,8 +296,6 @@ int get_extra_currency(slice currency) {
         .store_dict(orders)
         .end_cell()
     );
-
-    send_message_back(0x90000000, token_sender, 0, 64, query_id, action);
 
   } else {
     (action, cs) = parse_msg(action, cs);
