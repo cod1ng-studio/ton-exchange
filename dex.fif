@@ -605,7 +605,8 @@ PROGRAM{
         s1 s12 XCHG
         GEQ
         100 THROWIFNOT
-        s0 s3 XCHG
+        s3 s2 XCPU
+        SUB
         1000000000 PUSHINT
         SUB
         1 PUSHINT

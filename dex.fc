@@ -200,7 +200,7 @@ int get_extra_currency(slice currency) {
       is_token = 0;
 
       throw_unless(100, msg_value >= from_value + 1000000000);
-      fee_value -= 1000000000;
+      fee_value = fee_value - from_value - 1000000000;
       need_return_one_gram = 1;
     }
     int currency_id = get_extra_currency(from_currency);
