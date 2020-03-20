@@ -14,6 +14,8 @@ Following the [TON smartcontracts guidelines](https://test.ton.org/smguidelines.
 
 If the query is invalid, the smart contract throws an exception.
 
+After successful completion, a 0x90000000 response with the remaining grams will be sent to the sender.
+
 ---
 
 insert_order(from_value, from_currency_type, from_currency, to_value, to_currency_type, to_currency) - creates a new exchange order.
@@ -24,9 +26,9 @@ currency_type has 2 values:
 
 1 - if currency is TRC20 token. In this case currency value is TRC20 token smart contract address (8bit wc + 256bit addr).
 
-if from_currency is gram or TON extra currency an appropriate amount must be attached to the message.
+if from_currency is gram an appropriate amount PLUS 1 additional Gram must be attached to the message. 1 Gram will be returned back.
 
-if from_currency is TRC20 token you must make approve the corresponding amount of the token in favor of the exchange before sending the message.
+if from_currency is TON extra currency an appropriate amount must be attached to the message.
 
 After someone else creates an order directly opposite to yours, an exchange is made.
 
@@ -61,10 +63,8 @@ If parameter is empty slice it will be ignored, else orders will be filtering by
 For convenience, you can create queries by sending simple messages with text comment to token smart contract.
 In this case, the comment text should contain the hex of the message body (produced by 'csr.' fift command).
 
-Thanks to this, it was possible to create a user friendly interface - [@gram100_bot](https://t.me/gram100_bot) in Telegram.
+Thanks to this, it was possible to create a user friendly interface - [@dexton_bot](https://t.me/dexton_bot) in Telegram.
 
 Using the bot, users can exchange currencies without using a console.
 
 The bot generates ton:// links that you need to open with your TON wallet and send.
-
-Look: https://coding.studio/dexbot.mp4 

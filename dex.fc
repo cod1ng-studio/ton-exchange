@@ -1,5 +1,3 @@
-;; todo: delete order.paid
-
 slice clone_slice(slice s) {
   return begin_cell().store_slice(s).end_cell().begin_parse();
 }
