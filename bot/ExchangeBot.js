@@ -69,7 +69,7 @@ const sliceToAddr = (slice) => new Promise((resolve, reject) => {
 });
 
 const sliceToString = (slice) => new Promise((resolve, reject) => {
-    var child = cp.spawn(fiftInt, ['-i', '-I' + path+ 'lite-client/crypto/fift/lib']);
+    var child = cp.spawn(fiftInt, ['-i', '-I' + path + 'lite-client/crypto/fift/lib']);
 
     child.stdin.write('x{' + slice + '} 4 $@ .s');
 
@@ -148,7 +148,7 @@ const runMethod = (params) => new Promise((resolve, reject) => {
         if (err) {
             reject();
         } else {
-            const arr = format(stderr.substring(stderr.indexOf('result:') + 7));
+            const arr = format(stdout.substring(stdout.indexOf('result:') + 7));
             sliceToString(arr[0]).then(resolve);
         }
     });
@@ -192,26 +192,26 @@ function toGram(value) {
 }
 
 async function parseOrders(arr) {
-    if (arr.length === 0) {
+    let result = '';
+    const n = Math.floor(arr.length / 7);
+
+    if (n === 0) {
         return 'No pending orders';
-    } else {
-        let result = '';
-        const n = Math.floor(arr.length / 7);
-
-        for (let i = 0; i < n * 7; i += 7) {
-            const id = Number(arr[i + 0]);
-            const paid = Number(arr[i + 1]);
-            const sender = await sliceToAddr(arr[i + 2]);
-            const fromValue = parseGram(arr[i + 3]);
-            const fromCurrency = await getOrderCur(arr[i + 4]);
-            const toValue = parseGram(arr[i + 5]);
-            const toCurrency = await getOrderCur(arr[i + 6]);
-            const orderStr = [id, '-', fromValue, fromCurrency, '->', toValue, toCurrency].join(' ') + '\n';
-            result += orderStr;
-        }
-
-        return 'Pending orders:\n' + result;
     }
+
+    for (let i = 0; i < n * 7; i += 7) {
+        const id = Number(arr[i + 0]);
+        const paid = Number(arr[i + 1]);
+        const sender = await sliceToAddr(arr[i + 2]);
+        const fromValue = parseGram(arr[i + 3]);
+        const fromCurrency = await getOrderCur(arr[i + 4]);
+        const toValue = parseGram(arr[i + 5]);
+        const toCurrency = await getOrderCur(arr[i + 6]);
+        const orderStr = [id, '-', fromValue, fromCurrency, '->', toValue, toCurrency].join(' ') + '\n';
+        result += orderStr;
+    }
+
+    return 'Pending orders:\n' + result;
 }
 
 const getOrders = (ctx) => new Promise((resolve, reject) => {
@@ -219,7 +219,7 @@ const getOrders = (ctx) => new Promise((resolve, reject) => {
         if (err) {
             reject();
         } else {
-            parseOrders(format(stderr.substring(stderr.indexOf('result:') + 7))).then(resolve);
+            parseOrders(format(stdout.substring(stdout.indexOf('result:') + 7))).then(resolve);
         }
     });
 });
